@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace DateRegex
 {
-    class Program
+    internal class Program
     {
         public const string Format = "yyyy-MM-ddTHH:mm:sszz";
         

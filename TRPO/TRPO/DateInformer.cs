@@ -4,7 +4,7 @@ using System.Text;
 
 namespace DateRegex
 {
-    static class DateInformer
+    internal static class DateInformer
     {
         public static DateTime GetNextDay(DateTime current) => 
             new DateTime(current.Year, current.Month, current.Day).AddDays(1);
