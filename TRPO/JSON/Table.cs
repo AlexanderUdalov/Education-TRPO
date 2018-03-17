@@ -13,8 +13,8 @@ namespace JSON
     [Serializable]
     internal class Table
     {
-        public string[] columnNames;
-        public string[] columnTypes;
+        public List<string> columnNames;
+        public List<string> columnTypes;
         public object[] columnUnits;
         public object[][] rows;
     }

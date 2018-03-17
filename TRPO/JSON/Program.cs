@@ -2,6 +2,7 @@
 using System.IO;
 using System.Runtime.Serialization.Json;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace JSON
 {
@@ -16,17 +17,42 @@ namespace JSON
             {
                 tableWrapper = (TableWrapper)jsonFormatter.ReadObject(fs);
             }
-            int tempIndex = tableWrapper.table.columnNames.TakeWhile(x => x != "temperature").Count();
-            int timeIndex = tableWrapper.table.columnNames.TakeWhile(x => x != "time").Count();
 
-            Console.WriteLine("MinTemp = " + tableWrapper.table.rows.Min(x => x[tempIndex]));
-            Console.WriteLine("MaxTemp = " + tableWrapper.table.rows.Max(x => x[tempIndex]));
-            Console.WriteLine("AvgTemp = " + tableWrapper.table.rows.Select(x => x[tempIndex]).Average(x => Convert.ToDouble(x)));
+            int tempIndex = tableWrapper.table.columnNames.IndexOf("temperature");
+            int timeIndex = tableWrapper.table.columnNames.IndexOf("time");
 
-            Console.WriteLine("(MinTemp,Time) = " + tableWrapper.table.rows.Min(x => (x[tempIndex], x[timeIndex])));
-            Console.WriteLine("(MaxTemp,Time) = " + tableWrapper.table.rows.Max(x => (x[tempIndex], x[timeIndex])));
+            Dictionary<string, Dictionary<string, object>> result = new Dictionary<string, Dictionary<string, object>>()
+            {
+                ["temperature"] = new Dictionary<string, object>()
+                {
+                    ["start_date"] = new DateTime(),
+                    ["end_date"] = new DateTime(),
+                    ["num_records"] = 0,
+                    ["min_temperature"] = Single.MaxValue,
+                    ["min_time"] = new DateTime(),
+                    ["max_temperature"] = Single.MinValue,
+                    ["max_time"] = new DateTime(),
+                    ["avg_temperature"] = 0
+                }
+            };
 
-            Console.ReadLine();
+            foreach (var row in tableWrapper.table.rows)
+            {
+                if ((float)row[tempIndex] < (float)result["temperature"]["min_temperature"])
+                {
+                    result["temperature"]["min_temperature"] = row[tempIndex];
+                    result["temperature"]["min_time"] = row[timeIndex];
+                }
+                if ((float)row[tempIndex] > (float)result["temperature"]["max_temperature"])
+                {
+                    result["temperature"]["max_temperature"] = row[tempIndex];
+                    result["temperature"]["max_time"] = row[timeIndex];
+                }
+            }
+
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(result.GetType());
+
+            serializer.WriteObject(Console.OpenStandardOutput(), result);
         }
     }
 }
