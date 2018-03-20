@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Net.Http;
 using System.Net.WebSockets;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace WebSocketServer
 {
-    
     public class Program
     {
         public static void Main(string[] args) => WebHost.CreateDefaultBuilder(args).UseStartup<Startup>().Build().Run();
@@ -31,26 +29,26 @@ namespace WebSocketServer
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
-                    await Function(context, webSocket);
+                    await CheckChanges(webSocket);
                 }
                 else
-                {
-                    context.Response.StatusCode = 400;
-                }
+                    await context.Response.WriteAsync("This server for websocket use!");
             });
         }
         
-        private async Task Function(HttpContext context, WebSocket webSocket)
+        private async Task CheckChanges(WebSocket webSocket)
         {
             while (webSocket.State == WebSocketState.Open)
             {
-                var currentValue = await client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD");
                 await SendMessageAsync(webSocket, "Trying get values...");
+
+                var currentValue = await client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD");
                 if (!currentValue.Equals(PreviousValue))
                 {
                     PreviousValue = currentValue;
                     await SendMessageAsync(webSocket, currentValue.ToString());
                 }
+
                 await Task.Delay(3000);
             }
             await webSocket.CloseAsync(closeStatus: WebSocketCloseStatus.NormalClosure,
