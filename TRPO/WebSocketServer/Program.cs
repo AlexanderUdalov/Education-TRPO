@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
@@ -18,7 +19,7 @@ namespace WebSocketServer
 
     public class Startup
     {
-        public static string PreviousValue;
+        public static Dictionary <string,string> PreviousValues = new Dictionary<string, string>();
         public static HttpClient client = new HttpClient();
 
         public void Configure(IApplicationBuilder app)
@@ -42,18 +43,29 @@ namespace WebSocketServer
             {
                 await SendMessageAsync(webSocket, "Trying get values...");
 
-                var currentValue = await client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD");
-                if (!currentValue.Equals(PreviousValue))
-                {
-                    PreviousValue = currentValue;
-                    await SendMessageAsync(webSocket, currentValue.ToString());
-                }
+                CheckCurrentCryptocurrencyAsync(webSocket, "BTC");
+                CheckCurrentCryptocurrencyAsync(webSocket, "ETH");
 
-                await Task.Delay(3000);
+                await Task.Delay(1000);
             }
             await webSocket.CloseAsync(closeStatus: WebSocketCloseStatus.NormalClosure,
                                     statusDescription: "Closed succesfull",
                                     cancellationToken: CancellationToken.None);
+        }
+
+        private async void CheckCurrentCryptocurrencyAsync(WebSocket webSocket, string currentCryptocurrency)
+        {
+            if (!PreviousValues.ContainsKey(currentCryptocurrency))
+                PreviousValues[currentCryptocurrency] = currentCryptocurrency;
+
+            var currentValue = await client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=" +
+                currentCryptocurrency + "&tsyms=USD");
+
+            if (!currentValue.Equals(PreviousValues[currentCryptocurrency]))
+            {
+                PreviousValues[currentCryptocurrency] = currentValue;
+                await SendMessageAsync(webSocket, $"{currentCryptocurrency}: {currentValue.ToString()}");
+            }
         }
 
         public async Task SendMessageAsync(WebSocket socket, string message)
