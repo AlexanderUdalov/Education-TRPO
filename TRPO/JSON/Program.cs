@@ -19,14 +19,6 @@ namespace JSON
                 string json = r.ReadToEnd();
                 TableWrapper = (TableWrapper) JsonConvert.DeserializeObject(json, typeof(TableWrapper));
             }
-            //using (FileStream fs = new FileStream(@"file.json", FileMode.OpenOrCreate))
-            //{
-            //    TableWrapper = (TableWrapper)jsonFormatter.ReadObject(fs);
-            //}
-            //using (FileStream fs = new FileStream(@"file1.json", FileMode.OpenOrCreate))
-            //{
-            //    jsonFormatter.WriteObject(fs, TableWrapper);
-            //}
 
             Console.WriteLine(
                 JsonConvert.SerializeObject(

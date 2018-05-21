@@ -13,7 +13,7 @@ namespace WebSocketClient
         private static async Task RunWebSocketsAsync()
         {
             var client = new ClientWebSocket();
-            await client.ConnectAsync(new Uri("ws://localhost:55555/"), CancellationToken.None);
+            await client.ConnectAsync(new Uri("ws://localhost:55556"), CancellationToken.None);
 
             Console.WriteLine("Connected!");
 

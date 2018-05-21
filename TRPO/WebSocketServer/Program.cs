@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.WebSockets;
 using System.Text;
@@ -19,8 +20,11 @@ namespace WebSocketServer
 
     public class Startup
     {
-        public static Dictionary <string,string> PreviousValues = new Dictionary<string, string>();
-        public static HttpClient client = new HttpClient();
+        public static Dictionary<string, string> PreviousValues = new Dictionary<string, string>()
+        {
+            ["Test"] = "test"
+        };
+        private static HttpClient _client = new HttpClient();
 
         public void Configure(IApplicationBuilder app)
         {
@@ -30,6 +34,7 @@ namespace WebSocketServer
                 if (context.WebSockets.IsWebSocketRequest)
                 {
                     WebSocket webSocket = await context.WebSockets.AcceptWebSocketAsync();
+                    await SendMessageAsync(webSocket, PreviousValues.First().Value);
                     await CheckChanges(webSocket);
                 }
                 else
@@ -58,7 +63,7 @@ namespace WebSocketServer
             if (!PreviousValues.ContainsKey(currentCryptocurrency))
                 PreviousValues[currentCryptocurrency] = currentCryptocurrency;
 
-            var currentValue = await client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=" +
+            var currentValue = await _client.GetStringAsync(@"https://min-api.cryptocompare.com/data/price?fsym=" +
                 currentCryptocurrency + "&tsyms=USD");
 
             if (!currentValue.Equals(PreviousValues[currentCryptocurrency]))
